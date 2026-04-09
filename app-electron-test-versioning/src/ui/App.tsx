@@ -4,6 +4,7 @@ import {
   AppHeader,
   Backdrop,
   isCardEvent,
+  PomodoroTimer,
   UpdateNotificationCard,
   UpdateSidebar,
 } from './components'
@@ -120,6 +121,8 @@ const App = (): ReactElement => {
         showSidebar={showSidebar}
         onToggleSidebar={() => setShowSidebar(!showSidebar)}
       />
+
+      <PomodoroTimer />
 
       {showCard ? (
         <UpdateNotificationCard

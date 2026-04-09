@@ -12,6 +12,7 @@ electron.contextBridge.exposeInMainWorld('electron', {
   checkForUpdates: () => ipcInvoke('checkForUpdates'),
   downloadUpdate: () => ipcInvoke('downloadUpdate'),
   quitAndInstall: () => ipcInvoke('quitAndInstall'),
+  focusWindow: () => ipcInvoke('focusWindow'),
   onUpdateEvent: (callback) => {
     // @ts-ignore
     ipcOn('updateEvent', (payload) => {

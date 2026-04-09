@@ -5,8 +5,10 @@ import { getPreloadPath } from './path-resolver.js'
 import { getStaticData, pollResources } from './resource-manager.js'
 import { setupAutoUpdate } from './update-manager.js'
 
+let mainWindow: BrowserWindow | null = null
+
 app.on('ready', () => {
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     webPreferences: {
       preload: getPreloadPath(),
     },
@@ -27,5 +29,17 @@ app.on('ready', () => {
 
   ipcHandle('getAppVersion', () => {
     return app.getVersion()
+  })
+
+  ipcHandle('focusWindow', () => {
+    const win = mainWindow
+    if (!win || win.isDestroyed()) {
+      return
+    }
+    if (win.isMinimized()) {
+      win.restore()
+    }
+    win.show()
+    win.focus()
   })
 })

@@ -26,6 +26,7 @@ type EventPayloadMapping = {
   downloadUpdate: void
   quitAndInstall: void
   getAppVersion: string
+  focusWindow: void
 }
 
 interface Window {
@@ -37,5 +38,6 @@ interface Window {
     quitAndInstall: () => Promise<void>
     onUpdateEvent: (callback: (event: UpdateEvent) => void) => void
     getAppVersion: () => Promise<string>
+    focusWindow: () => Promise<void>
   }
 }

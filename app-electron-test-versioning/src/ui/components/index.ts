@@ -1,4 +1,5 @@
 export { AppHeader } from './AppHeader'
+export { PomodoroTimer } from './PomodoroTimer'
 export { Backdrop } from './Backdrop'
 export { DownloadProgressBar } from './DownloadProgressBar'
 export { UpdateNotificationCard } from './UpdateNotificationCard'
