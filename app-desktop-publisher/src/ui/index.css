@@ -1,0 +1,34 @@
+@import 'tailwindcss';
+
+@layer base {
+  body {
+    @apply m-0 min-h-screen bg-white font-sans text-neutral-900 antialiased;
+  }
+
+  #root {
+    @apply min-h-screen;
+  }
+
+  .btn-primary {
+    @apply cursor-pointer inline-flex items-center justify-center border border-neutral-900 bg-white px-4 py-2.5 text-sm font-medium text-neutral-900 transition-colors disabled:pointer-events-none disabled:opacity-35;
+  }
+
+  .btn-ghost {
+    @apply cursor-pointer inline-flex items-center justify-center border border-transparent bg-transparent px-4 py-2.5 text-sm font-medium text-neutral-700 transition-colors hover:bg-neutral-100 hover:text-neutral-900;
+  }
+}
+
+@keyframes update-dl-indeterminate {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(350%);
+  }
+}
+
+@layer utilities {
+  .update-dl-indeterminate {
+    animation: update-dl-indeterminate 1.1s ease-in-out infinite;
+  }
+}
