@@ -45,12 +45,12 @@ Script ini menjalankan `transpile:electron`, build frontend (`vite build`), lalu
 
 ### Mencoba auto-update
 
-Auto-update **bukan** untuk mengandalkan mode `pnpm dev` semata:
+Auto-update **tidak** untuk mode `pnpm dev`:
 
 - **Disarankan:** build installer (`pnpm dist:win`), install aplikasinya, lalu rilis versi lebih baru ke sumber update (via publisher + folder Synology + **be-server**), dan buka app terpasang untuk mengecek update.
 - Atau jalankan build/production sesuai setup project Anda (intinya updater perlu kondisi mendekati **production** / app terpasang, bukan sekadar dev server).
 
-Sesuaikan versi di `package.json` / konfigurasi `electron-builder` dan URL generic update agar mengarah ke **be-server** (misalnya `https://host-anda/latest.yml`).
+Sesuaikan konfigurasi `electron-builder` dpada bagian URL generic update agar mengarah ke **be-server** (misalnya `https://host-anda/latest.yml`).
 
 ---
 
@@ -105,14 +105,14 @@ Salin `.env.example` menjadi `.env` dan isi:
 
 ```bash
 cd be-server
-pnpm install
-pnpm start
+npm install
+npm start
 ```
 
 Development dengan auto-restart:
 
 ```bash
-pnpm dev
+npm run dev
 ```
 
 Setelah jalan, cek log untuk URL listing; di browser buka `http://localhost:<PORT>/` dan pastikan `http://localhost:<PORT>/latest.yml` bisa diakses.
