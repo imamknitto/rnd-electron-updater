@@ -15,15 +15,14 @@ electron.contextBridge.exposeInMainWorld('electron', {
     return () => electron.ipcRenderer.removeListener('updateEvent', listener)
   },
 
-  selectSourceFolder: () => ipcInvoke('selectSourceFolder'),
+  login: (username: string, password: string) => ipcInvoke('login', username, password),
+  logout: () => ipcInvoke('logout'),
+  getAuthState: () => ipcInvoke('getAuthState'),
+  selectSourceFolders: () => ipcInvoke('selectSourceFolders'),
   selectSourceFiles: () => ipcInvoke('selectSourceFiles'),
   selectDestinationFolder: () => ipcInvoke('selectDestinationFolder'),
-  savePublishPreset: (
-    name: string,
-    sourceMode: PublishSourceMode,
-    sources: string[],
-    destination: string,
-  ) => ipcInvoke('savePublishPreset', name, sourceMode, sources, destination),
+  savePublishPreset: (name: string, sources: string[], destination: string) =>
+    ipcInvoke('savePublishPreset', name, sources, destination),
   listPublishPresets: () => ipcInvoke('listPublishPresets'),
   startCopyProcess: (sources: string[], destination: string) =>
     ipcInvoke('startCopyProcess', sources, destination),

@@ -1,5 +1,5 @@
 {
-    "appId": "com.example.app-electron-test-versioning",
+    "appId": "com.example.pomodoro-timer",
     "extraResources": [
         "dist-electron/preload.cjs"
     ],

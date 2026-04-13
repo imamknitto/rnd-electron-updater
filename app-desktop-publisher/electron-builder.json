@@ -24,5 +24,6 @@
             "AppImage"
         ],
         "category": "Utility"
-    }
+    },
+    "publish": null
 }
