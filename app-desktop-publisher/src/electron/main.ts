@@ -12,19 +12,25 @@ import { getSourceExeVersion } from './exe-source-version.js'
 import { ipcHandle, isDev } from './utils.js'
 import { getPreloadPath } from './path-resolver.js'
 import { runCopyProcess } from './copy-process.js'
-import { listPublishPresets, savePublishPreset, deletePublishPreset } from './publish-db.js'
+import {
+  listPublishPresets,
+  savePublishPreset,
+  deletePublishPreset,
+  updatePublishPreset,
+  markPresetAsPublished,
+} from './publish-db.js'
+import { recordPublishHistory, getPublishHistory } from './publish-history.js'
 import { derivePublishSourceMode } from './derive-source-mode.js'
 
 app.on('ready', () => {
   const mainWindow = new BrowserWindow({
-    width: 900,
-    height: 700,
     webPreferences: {
       preload: getPreloadPath(),
       nodeIntegration: false,
       contextIsolation: true,
     },
   })
+  mainWindow.maximize()
 
   if (isDev()) {
     mainWindow.loadURL('http://localhost:4007')
@@ -83,7 +89,8 @@ app.on('ready', () => {
     const list = sources as string[]
     const dest = destination as string
     const mode = derivePublishSourceMode(list)
-    return savePublishPreset(nam, mode, list, dest)
+    const username = getSession()?.username ?? 'unknown'
+    return savePublishPreset(nam, mode, list, dest, username)
   })
 
   ipcHandle('deletePublishPreset', (id: unknown): DeletePublishPresetResult => {
@@ -126,5 +133,69 @@ app.on('ready', () => {
     const sourceList = sources as string[]
     const destRoot = destination as string
     return runCopyProcess(mainWindow, sourceList, destRoot)
+  })
+
+  ipcHandle(
+    'updatePublishPreset',
+    (id: unknown, name: unknown, sources: unknown, destination: unknown) => {
+      if (!isLoggedIn()) {
+        return { success: false, error: authErrorNotLoggedIn }
+      }
+      if (!isDeveloper()) {
+        return { success: false, error: 'Hanya developer yang dapat mengupdate preset.' }
+      }
+      const idNumber = id as number
+      const nam = name as string
+      const list = sources as string[]
+      const dest = destination as string
+      const mode = derivePublishSourceMode(list)
+      return updatePublishPreset(idNumber, nam, mode, list, dest)
+    },
+  )
+
+  ipcHandle('markPublishPresetAsPublished', (presetId: unknown) => {
+    if (!isLoggedIn()) {
+      return { success: false, error: authErrorNotLoggedIn }
+    }
+    if (getSession()?.role !== 'implementor') {
+      return { success: false, error: 'Hanya implementor yang dapat melakukan publish.' }
+    }
+    const idNumber = presetId as number
+    const result = markPresetAsPublished(idNumber)
+    return result
+  })
+
+  ipcHandle(
+    'recordPublishHistoryEvent',
+    (presetId: unknown, presetName: unknown, sources: unknown, destination: unknown) => {
+      if (!isLoggedIn()) {
+        return { success: false, error: authErrorNotLoggedIn }
+      }
+      if (getSession()?.role !== 'implementor') {
+        return { success: false, error: 'Hanya implementor yang dapat melakukan publish.' }
+      }
+      const idNumber = presetId as number
+      const nam = presetName as string
+      const list = sources as string[]
+      const dest = destination as string
+      const username = getSession()?.username ?? 'unknown'
+      return recordPublishHistory(idNumber, nam, list, dest, username)
+    },
+  )
+
+  ipcHandle('listPublishHistory', () => {
+    if (!isLoggedIn()) {
+      return []
+    }
+    const history = getPublishHistory()
+    return history.map((h) => ({
+      id: h.id,
+      presetId: h.preset_id,
+      presetName: h.preset_name,
+      publishedBy: h.published_by,
+      publishedAt: h.published_at,
+      sources: JSON.parse(h.sources_json) as string[],
+      destination: h.destination,
+    }))
   })
 })

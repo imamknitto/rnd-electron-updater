@@ -27,6 +27,17 @@ electron.contextBridge.exposeInMainWorld('electron', {
   startCopyProcess: (sources: string[], destination: string) =>
     ipcInvoke('startCopyProcess', sources, destination),
   deletePublishPreset: (id: number) => ipcInvoke('deletePublishPreset', id),
+  updatePublishPreset: (id: number, name: string, sources: string[], destination: string) =>
+    ipcInvoke('updatePublishPreset', id, name, sources, destination),
+  markPublishPresetAsPublished: (presetId: number) =>
+    ipcInvoke('markPublishPresetAsPublished', presetId),
+  recordPublishHistoryEvent: (
+    presetId: number,
+    presetName: string,
+    sources: string[],
+    destination: string,
+  ) => ipcInvoke('recordPublishHistoryEvent', presetId, presetName, sources, destination),
+  listPublishHistory: () => ipcInvoke('listPublishHistory'),
 
   onCopyProgress: (callback: (payload: CopyProgressPayload) => void) => {
     const listener = (_event: IpcRendererEvent, payload: CopyProgressPayload) => {

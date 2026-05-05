@@ -11,6 +11,9 @@ export type PublishPresetRow = {
   sources: string[]
   destination: string
   createdAt: number
+  createdBy: string
+  isPublished: boolean
+  publishedAt?: number
 }
 
 let db: Database.Database | null = null
@@ -31,6 +34,17 @@ const ensurePublishPresetsSchema = (database: Database.Database): void => {
   if (!columns.some((c) => c.name === 'name')) {
     database.exec(`ALTER TABLE publish_presets ADD COLUMN name TEXT NOT NULL DEFAULT ''`)
   }
+  if (!columns.some((c) => c.name === 'created_by')) {
+    database.exec(
+      `ALTER TABLE publish_presets ADD COLUMN created_by TEXT NOT NULL DEFAULT 'unknown'`,
+    )
+  }
+  if (!columns.some((c) => c.name === 'is_published')) {
+    database.exec(`ALTER TABLE publish_presets ADD COLUMN is_published INTEGER NOT NULL DEFAULT 0`)
+  }
+  if (!columns.some((c) => c.name === 'published_at')) {
+    database.exec(`ALTER TABLE publish_presets ADD COLUMN published_at INTEGER`)
+  }
 }
 
 const getDb = (): Database.Database => {
@@ -47,6 +61,7 @@ export const savePublishPreset = (
   sourceMode: PublishSourceMode,
   sources: string[],
   destination: string,
+  createdByUsername: string,
 ): { success: true; id: number } | { success: false; error: string } => {
   const trimmedName = name.trim()
   if (!trimmedName) {
@@ -60,8 +75,8 @@ export const savePublishPreset = (
   }
   try {
     const stmt = getDb().prepare(
-      `INSERT INTO publish_presets (name, source_mode, sources_json, destination, created_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO publish_presets (name, source_mode, sources_json, destination, created_at, created_by, is_published, published_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     const info = stmt.run(
       trimmedName,
@@ -69,6 +84,9 @@ export const savePublishPreset = (
       JSON.stringify(sources),
       destination.trim(),
       Date.now(),
+      createdByUsername,
+      0,
+      null,
     )
     return { success: true, id: Number(info.lastInsertRowid) }
   } catch (e) {
@@ -84,12 +102,15 @@ type DbRow = {
   sources_json: string
   destination: string
   created_at: number
+  created_by: string
+  is_published: number
+  published_at: number | null
 }
 
 export const listPublishPresets = (): PublishPresetRow[] => {
   const rows = getDb()
     .prepare(
-      `SELECT id, name, source_mode, sources_json, destination, created_at
+      `SELECT id, name, source_mode, sources_json, destination, created_at, created_by, is_published, published_at
        FROM publish_presets
        ORDER BY created_at DESC`,
     )
@@ -102,6 +123,9 @@ export const listPublishPresets = (): PublishPresetRow[] => {
     sources: JSON.parse(r.sources_json) as string[],
     destination: r.destination,
     createdAt: r.created_at,
+    createdBy: r.created_by,
+    isPublished: Boolean(r.is_published),
+    publishedAt: r.published_at ?? undefined,
   }))
 }
 
@@ -116,6 +140,58 @@ export const deletePublishPreset = (id: number): { success: boolean; error?: str
     return { success: true }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Gagal menghapus preset.'
+    return { success: false, error: message }
+  }
+}
+
+export const updatePublishPreset = (
+  id: number,
+  name: string,
+  sourceMode: PublishSourceMode,
+  sources: string[],
+  destination: string,
+): { success: boolean; error?: string } => {
+  if (!id) return { success: false, error: 'ID tidak boleh kosong.' }
+  const trimmedName = name.trim()
+  if (!trimmedName) {
+    return { success: false, error: 'Nama tidak boleh kosong.' }
+  }
+  if (sources.length === 0) {
+    return { success: false, error: 'Sumber tidak boleh kosong.' }
+  }
+  if (!destination.trim()) {
+    return { success: false, error: 'Tujuan tidak boleh kosong.' }
+  }
+
+  try {
+    const stmt = getDb().prepare(
+      `UPDATE publish_presets 
+       SET name = ?, source_mode = ?, sources_json = ?, destination = ? 
+       WHERE id = ?`,
+    )
+    const info = stmt.run(trimmedName, sourceMode, JSON.stringify(sources), destination.trim(), id)
+    if (info.changes === 0) return { success: false, error: 'Preset tidak ditemukan.' }
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Gagal mengupdate preset.'
+    return { success: false, error: message }
+  }
+}
+
+export const markPresetAsPublished = (id: number): { success: boolean; error?: string } => {
+  if (!id) return { success: false, error: 'ID tidak boleh kosong.' }
+
+  try {
+    const stmt = getDb().prepare(
+      `UPDATE publish_presets 
+       SET is_published = 1, published_at = ? 
+       WHERE id = ?`,
+    )
+    const info = stmt.run(Date.now(), id)
+    if (info.changes === 0) return { success: false, error: 'Preset tidak ditemukan.' }
+    return { success: true }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Gagal mengupdate status preset.'
     return { success: false, error: message }
   }
 }

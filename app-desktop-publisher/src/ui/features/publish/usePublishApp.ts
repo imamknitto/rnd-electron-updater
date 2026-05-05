@@ -14,18 +14,28 @@ export const usePublishApp = () => {
   const [currentFile, setCurrentFile] = useState('')
   const [totalFiles, setTotalFiles] = useState(0)
   const [copyingPresetId, setCopyingPresetId] = useState<number | null>(null)
+  const [editingPresetId, setEditingPresetId] = useState<number | null>(null)
+  const [historyRecords, setHistoryRecords] = useState<PublishHistoryRecord[]>([])
+  const [showHistory, setShowHistory] = useState(false)
 
   const copying = copyingPresetId !== null
   const sourcesReady = sourcePaths.length > 0
+  const isEditing = editingPresetId !== null
 
   const refreshPresets = useCallback(async () => {
     const rows = await window.electron.listPublishPresets()
     setPresets(rows)
   }, [])
 
+  const fetchPublishHistory = useCallback(async () => {
+    const history = await window.electron.listPublishHistory()
+    setHistoryRecords(history)
+  }, [])
+
   useEffect(() => {
     void refreshPresets()
-  }, [refreshPresets])
+    void fetchPublishHistory()
+  }, [refreshPresets, fetchPublishHistory])
 
   useEffect(() => {
     const removeProgress = window.electron.onCopyProgress((payload) => {
@@ -61,9 +71,28 @@ export const usePublishApp = () => {
 
     setSaveError('')
     setSavingPreset(true)
-    console.log({ name, sources: sourcePaths, destPath })
 
     try {
+      if (editingPresetId !== null) {
+        const result = await window.electron.updatePublishPreset(
+          editingPresetId,
+          name,
+          sourcePaths,
+          destPath,
+        )
+        if (!result.success) {
+          setSaveError(result.error ?? 'Gagal mengupdate preset.')
+          return
+        }
+        setEditingPresetId(null)
+        setName('')
+        setSourcePaths([])
+        setDestPath(null)
+        await refreshPresets()
+        toast.success('Preset berhasil diupdate.')
+        return
+      }
+
       const result = await window.electron.savePublishPreset(name, sourcePaths, destPath)
       if (!result.success) return setSaveError(result.error)
       setName('')
@@ -92,6 +121,15 @@ export const usePublishApp = () => {
       if (!result.success) {
         alert(result.error)
       } else {
+        await window.electron.recordPublishHistoryEvent(
+          preset.id,
+          preset.name,
+          preset.sources,
+          preset.destination,
+        )
+        await window.electron.markPublishPresetAsPublished(preset.id)
+        await refreshPresets()
+        await fetchPublishHistory()
         toast.success('Selesai. Data sudah di folder tujuan.')
       }
     } catch (e) {
@@ -114,6 +152,26 @@ export const usePublishApp = () => {
     setSourcePaths([])
   }
 
+  const editPreset = (preset: PublishPreset) => {
+    setSaveError('')
+    setEditingPresetId(preset.id)
+    setName(preset.name)
+    setSourcePaths([...preset.sources])
+    setDestPath(preset.destination)
+  }
+
+  const resetPresetForm = (): void => {
+    setSaveError('')
+    setEditingPresetId(null)
+    setName('')
+    setSourcePaths([])
+    setDestPath(null)
+  }
+
+  const toggleShowHistory = () => {
+    setShowHistory(!showHistory)
+  }
+
   return {
     name,
     setName,
@@ -128,6 +186,10 @@ export const usePublishApp = () => {
     copying,
     sourcesReady,
     presets,
+    historyRecords,
+    showHistory,
+    editingPresetId,
+    isEditing,
     appendSourceFolders,
     appendSourceFiles,
     selectDestination,
@@ -135,5 +197,9 @@ export const usePublishApp = () => {
     savePreset,
     publishPreset,
     deletePreset,
+    editPreset,
+    resetPresetForm,
+    toggleShowHistory,
+    fetchPublishHistory,
   }
 }

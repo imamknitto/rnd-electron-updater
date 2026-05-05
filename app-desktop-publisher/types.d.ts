@@ -38,13 +38,32 @@ type PublishPreset = {
   sources: string[]
   destination: string
   createdAt: number
+  createdBy: string
+  isPublished: boolean
+  publishedAt?: number
   /** Versi file .exe pertama yang ditemukan di sumber (Windows); diisi saat list preset. */
   sourceExeVersion: string | null
+}
+
+type PublishHistoryRecord = {
+  id: number
+  presetId: number
+  presetName: string
+  publishedBy: string
+  publishedAt: number
+  sources: string[]
+  destination: string
 }
 
 type SavePublishPresetResult = { success: true; id: number } | { success: false; error: string }
 
 type DeletePublishPresetResult = { success: true; id: number } | { success: false; error: string }
+
+type UpdatePublishPresetResult = { success: boolean; error?: string }
+
+type MarkPublishPresetResult = { success: boolean; error?: string }
+
+type RecordPublishHistoryResult = { success: boolean; error?: string }
 
 type EventPayloadMapping = {
   statistics: Statistics
@@ -64,6 +83,10 @@ type EventPayloadMapping = {
   savePublishPreset: SavePublishPresetResult
   deletePublishPreset: DeletePublishPresetResult
   listPublishPresets: PublishPreset[]
+  updatePublishPreset: UpdatePublishPresetResult
+  markPublishPresetAsPublished: MarkPublishPresetResult
+  recordPublishHistoryEvent: RecordPublishHistoryResult
+  listPublishHistory: PublishHistoryRecord[]
 }
 
 type CopyProgressPayload = { percent: number; fileName: string }
@@ -88,7 +111,21 @@ interface Window {
       destination: string,
     ) => Promise<SavePublishPresetResult>
     deletePublishPreset: (id: number) => Promise<DeletePublishPresetResult>
+    updatePublishPreset: (
+      id: number,
+      name: string,
+      sources: string[],
+      destination: string,
+    ) => Promise<UpdatePublishPresetResult>
+    markPublishPresetAsPublished: (presetId: number) => Promise<MarkPublishPresetResult>
+    recordPublishHistoryEvent: (
+      presetId: number,
+      presetName: string,
+      sources: string[],
+      destination: string,
+    ) => Promise<RecordPublishHistoryResult>
     listPublishPresets: () => Promise<PublishPreset[]>
+    listPublishHistory: () => Promise<PublishHistoryRecord[]>
     onCopyProgress: (callback: (payload: CopyProgressPayload) => void) => () => void
     onCopyStart: (callback: (totalFiles: number) => void) => () => void
     onCopyComplete: (callback: () => void) => () => void

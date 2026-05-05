@@ -40,7 +40,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
           <button
             type="button"
-            className="shrink-0 border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-800 transition-colors hover:bg-neutral-100"
+            className="cursor-pointer shrink-0 border border-neutral-300 px-3 py-1.5 text-xs font-medium text-neutral-800 transition-colors hover:bg-neutral-100"
             onClick={() => void logout()}
           >
             Keluar

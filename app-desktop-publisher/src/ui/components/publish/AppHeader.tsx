@@ -8,7 +8,7 @@ const AppHeader = ({ isDeveloper }: { isDeveloper: boolean }) => {
   return (
     <header
       className={clsx(
-        'mb-8 border-b border-neutral-200 pb-6',
+        'mb-4 border-b border-neutral-200 pb-4',
         !isDeveloper && 'border-none pb-0 mb-0!',
       )}
     >

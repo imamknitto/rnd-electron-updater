@@ -1,0 +1,106 @@
+/* === Chrome, Edge, Safari === */
+.filter-scrollbar::-webkit-scrollbar {
+  width: 2px;
+  height: 2px;
+}
+
+.filter-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.4);
+  border-radius: 2px;
+}
+
+/* === Table Scrollbar Optimizations === */
+[data-table-container]::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+[data-table-container]::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 6px;
+}
+
+[data-table-container]::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.3);
+  border-radius: 6px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+  transition: background-color 0.2s ease;
+}
+
+[data-table-container]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 100, 100, 0.5);
+}
+
+[data-table-container]::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* === Firefox === */
+[data-table-container] {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+}
+
+/* === Scroll Performance === */
+[data-table-container] {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  /* overscroll-behavior-y: auto agar scroll chaining ke parent saat mencapai top/bottom tabel */
+  overscroll-behavior-y: auto;
+  overscroll-behavior-x: contain;
+}
+
+/* === Virtual Content Optimization === */
+.group\/row {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* === Sticky Elements === */
+.sticky {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* === Sticky Footer === */
+.sticky-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 30;
+  background: white;
+  border-top: 1px solid #d2d2d4;
+}
+
+/* Make footer only sticky when there's enough content to scroll */
+[data-table-container] {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+[data-table-container] table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-table-container] thead {
+  flex-shrink: 0;
+}
+
+[data-table-container] tbody {
+  flex: 1;
+}
+
+[data-table-container] tfoot {
+  flex-shrink: 0;
+  margin-top: auto;
+}
+
+.dark .sticky-footer {
+  background: #1a1a1a;
+  border-top-color: #404040;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
